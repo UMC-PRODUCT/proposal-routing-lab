@@ -174,17 +174,92 @@ def read_state(comments):
     return json.loads(c['body'][len(STATE_MARKER):].split('\n-->\n', 1)[0]), c['id']
 
 
+def _display_timestamp(value):
+    try:
+        return stamp(value).astimezone(KST).strftime('%Y-%m-%d %H:%M:%S KST')
+    except (ValueError, TypeError, AttributeError):
+        return f'{value} (시각 형식 확인 필요)'
+
+
+def _next_steps(state):
+    status = state.get('status', '')
+    errors = state.get('errors', [])
+    if status.startswith('비활성'):
+        return '운영 담당자는 활성화 이슈에서 설정과 역할 수락을 확인하세요. 제출자는 접수 시작 안내를 기다려 주세요.'
+    if status.startswith('테스트 시나리오'):
+        return ('테스트 담당자는 아래 입력 오류가 의도한 결과인지 확인하세요.' if errors else
+                '테스트 담당자는 입력 검증 결과를 기록하세요.') + ' 이 이슈는 운영 표본에 포함되지 않으며 실제 담당자 지정이나 결정 수락은 진행하지 않습니다.'
+    if status.startswith('접수 제외'):
+        return '운영 담당자는 제출자의 파일럿 참가 여부를 확인하세요. 참가자로 확인되기 전에는 실제 접수로 처리하지 않습니다.'
+    if status.startswith('접수 기간 밖'):
+        return '운영 담당자는 활성화 이슈의 접수 기간과 이슈 생성 시각을 확인하세요. 이 이슈는 이번 접수 표본에 포함되지 않습니다.'
+    if status == '필수 정보 보완 대기':
+        return '제안자는 아래 확인 항목에 맞춰 이슈 본문을 수정하세요. 수정 후 이 댓글에서 유효 접수 시각과 첫 결정 기한이 표시되는지 확인하세요.'
+    if status in {'첫 결정 대기', '결정 기록 재확인 필요'}:
+        steps = []
+        if errors and state.get('delivery_allowed') is False:
+            steps.append('제안자는 아래 본문 입력 오류를 보완하세요. 이미 기록된 유효 접수 시각과 첫 결정 기한은 유지됩니다.')
+        if not state.get('route'):
+            steps.append('부총괄은 운영 가이드의 담당자 지정 절차에 따라 결정권자를 지정하세요. 처리 후 이슈의 Assignee와 이 댓글의 결정권자가 같은지 확인하세요.')
+        elif any('해당 결정 수락' in error for error in errors):
+            steps.append('지명된 실행 담당자와 결정권자는 운영 가이드의 첫 결정과 실행 책임 절차에 따라 수락을 기록하세요. 결정권자가 수락 댓글 링크를 반영한 뒤, 실행 담당자는 기존 수락 댓글에 확인 문장을 추가해 다시 수락하세요. 수락 명령과 댓글 URL은 유지하세요.')
+        else:
+            steps.append('결정권자는 운영 가이드의 첫 결정 절차에 따라 결정 댓글, 결정 라벨, 실행 담당자의 수락을 확인하세요.')
+        if status == '결정 기록 재확인 필요':
+            steps.append('최초 결정 완료 시각은 보존됩니다. 아래 확인 항목을 해결한 뒤 현재 결정 기록이 다시 유효해졌는지 확인하세요.')
+        return ' '.join(steps)
+    if state.get('current_decision'):
+        return '결정 댓글에 지정된 담당자는 다음 행동을 진행하고, 재검토 조건이나 날짜가 되면 이 이슈에 결과를 기록하세요.'
+    return '운영 담당자는 워크플로 처리 후 이 댓글에 접수 상태가 표시되는지 확인하세요.'
+
+
 def render_state(state):
-    lines = ['## Proposal 운영 기록', state.get('status', '검증 대기')]
-    for key in ('submitted_at', 'valid_at', 'decision_due_at', 'first_decision_at'):
-        if state.get(key):
-            lines.append(f'- {key}: {state[key]}')
-    if state.get('route'):
-        lines.append(f'- 결정권자: @{state["route"]["assignee"]} / Route: {state["route"]["key"]}')
-    lines.extend(f'- {error}' for error in state.get('errors', []))
-    for event, delivery in state.get('deliveries', {}).items():
-        lines.append(f'- Discord {event}: {delivery["status"]}')
-    lines.append('\nProject 필드는 이 기록에서 복사합니다. 기한·상태의 기준은 이 Issue입니다.')
+    status = state.get('status', '검증 대기')
+    statuses = {
+        '테스트 시나리오 — 운영 표본 제외': '테스트 시나리오: 운영 표본 제외',
+        '비활성 — 실제 접수·기한·알림 없음': '비활성: 현재 실제 접수·담당자 지정·알림을 처리하지 않습니다.',
+        '접수 제외 — 참가자 확인 필요': '접수 제외: 참가자 확인 필요',
+        '접수 기간 밖 — Cohort 편입 없음': '접수 기간 밖: 이번 접수 표본에 포함되지 않습니다.',
+    }
+    decisions = {'Validating': '검증 진행', 'Active': '실행 진행', 'Parked': '보류', 'Rejected': '반려'}
+    decision = state.get('current_decision', {}).get('decision') if state.get('current_decision') else None
+    visible_status = statuses.get(status, status)
+    if status.startswith('유효한 첫 결정:') and decision:
+        visible_status = f'첫 결정 기록 완료: {decisions.get(decision, decision)} (`{decision}`)'
+    lines = ['## 제안 운영 기록', '', visible_status, '', '### 다음 행동', '', _next_steps(state)]
+    timestamps = [('submitted_at', '제안 제출 시각'), ('valid_at', '유효 접수 시각'),
+                  ('decision_due_at', '첫 결정 기한'), ('first_decision_at', '최초 결정 완료 시각')]
+    if any(state.get(key) for key, _ in timestamps) or state.get('route'):
+        lines.extend(['', '### 접수·결정 기록', ''])
+        if status.startswith(('비활성', '테스트 시나리오', '접수 제외', '접수 기간 밖')):
+            lines.extend(['아래 내용은 이전에 기록된 이력입니다. 현재 접수 여부는 위 상태를 확인하세요.', ''])
+        for key, label in timestamps:
+            if state.get(key):
+                lines.append(f'- {label}: {_display_timestamp(state[key])}')
+        if state.get('route'):
+            route = state['route']
+            slot = {'primary': '기본 담당', 'backup': '대체 담당'}.get(route.get('slot'), '담당 구분 미기록')
+            lines.append(f'- 결정권자: @{route["assignee"]} ({slot})')
+            lines.append(f'- 제안을 검토할 목적·플랫폼 구분: `{route["key"]}`')
+        if state.get('valid_at'):
+            lines.extend(['', '유효 접수 시각은 필수 입력과 접수 조건을 충족한 시각이며, 첫 결정 기한을 계산하는 기준입니다.'])
+    if state.get('errors'):
+        heading = '운영 담당자가 확인할 활성화 조건' if status.startswith('비활성') else '확인할 항목'
+        lines.extend(['', f'### {heading}', ''])
+        lines.extend(f'- {error}' for error in state['errors'])
+    if state.get('deliveries'):
+        events = {'new': '신규 접수', 'decision': '첫 결정 완료', 'due': '결정 기한 당일 안내', 'escalation': '결정 기한 경과 안내'}
+        deliveries = {'queued': '전송 대기', 'sending': '전송 시도 기록됨, 수신 확인 필요',
+                      'sent': '전송 완료', 'uncertain': '수신 여부 확인 필요', 'failed': '전송 실패',
+                      'cancelled': '전송 취소, 후속 결정 또는 기한 경과 안내로 대체됨'}
+        lines.extend(['', '### Discord 알림 기록', ''])
+        for event, delivery in state['deliveries'].items():
+            lines.append(f'- {events.get(event, event)}: {deliveries.get(delivery["status"], delivery["status"])}')
+        if state.get('delivery_allowed') is False:
+            lines.extend(['', '현재 알림 전송이 보류되어 있습니다. 위 다음 행동과 확인 항목을 먼저 확인하세요.'])
+        elif any(d['status'] in {'sending', 'uncertain', 'failed'} for d in state['deliveries'].values()):
+            lines.extend(['', '운영 담당자는 Discord 채널에서 수신 여부를 확인하세요. 재전송이 필요하면 운영 가이드의 알림 재시도 절차를 따르세요.'])
+    lines.extend(['', '접수 시각·첫 결정 기한·결정 기록은 이 이슈를 기준으로 확인합니다. 운영 담당자는 이 기록에 맞춰 Project 필드를 갱신하세요.'])
     return STATE_MARKER + json.dumps(state, ensure_ascii=False, sort_keys=True) + '\n-->\n' + '\n'.join(lines)
 
 

@@ -1,34 +1,42 @@
 # 구축 및 검증 기록
 
-상태: **저장소·Workflow·Discord 비활성 구축 완료, Project·브라우저 검증은 로그인 대기.** 아래 미확인 항목은 활성화 전까지 완료해야 합니다.
+이 문서는 실제로 수행한 확인과 남은 검증을 구분해 보관합니다. 항목의 날짜·환경·근거가 가리키는 시점의 결과이며, 현재 상태나 활성화 승인을 대신하지 않습니다. 이번 파일럿의 준비 판단은 [활성화 이슈 #1](https://github.com/UMC-PRODUCT/proposal-routing-lab/issues/1)에 기록합니다.
 
-## 완료한 준비
+## 구축 당시 확인한 결과
 
-- 2026-09-12: GitHub 조직 기본 저장소 접근권한 `none`, Free 플랜 확인.
-- 2026-09-12: 파일럿 저장소 미존재 확인 후 신규 구축 착수.
-- 2026-09-12: CLI에 `read:project` 범위가 없고 Codex 브라우저가 로그아웃 상태임을 확인. Project 설정은 로그인 또는 CLI Project 권한이 필요함.
-- 2026-09-12: Private 저장소, `PILOT_ACTIVE=false`·`AUTO_ROUTING_ENABLED=false`, Label 19개, [활성화 Issue #1](https://github.com/UMC-PRODUCT/proposal-routing-lab/issues/1)을 생성했다.
-- 2026-09-12: [비공개 Discord 준비 채널](https://discord.com/channels/1442030160311484416/1548251856549974136)을 만들었다. 일반 구성원의 View 권한을 차단하고 관리자 예외·봇만 접근하도록 구성했다. 실제 참가자에게는 아직 권한을 부여하지 않았다.
-- 2026-09-12: 준비 안내를 고정하고 Webhook을 저장소 Secret `DISCORD_PROPOSAL_PILOT_WEBHOOK`에 직접 등록했다. 자격증명은 로컬 파일·로그에 저장하지 않았다.
+| 확인일 | 대상·환경 | 확인한 결과 | 근거 |
+|---|---|---|---|
+| 2026-09-12 | GitHub 조직과 신규 저장소 | 조직 기본 저장소 접근권한 `none`, Free 플랜, 비공개 저장소 생성, 두 운영 변수 `false`, Label 19개, 활성화 이슈 생성. Wiki·Discussions·저장소 자체 Project 비활성. | [저장소](https://github.com/UMC-PRODUCT/proposal-routing-lab), [활성화 이슈](https://github.com/UMC-PRODUCT/proposal-routing-lab/issues/1). 상세 설정은 해당 권한이 있는 계정으로 확인. |
+| 2026-09-12 | Discord 준비 채널 | 일반 구성원 접근 차단, 관리자 예외·봇 접근, 준비 안내 고정, Webhook을 저장소 Secret에 직접 등록. 실제 참가자 권한은 미부여. | [준비 채널](https://discord.com/channels/1442030160311484416/1548251856549974136). 자격증명은 문서·로그에 보관하지 않음. |
+| 2026-09-12 | 로컬 Python 3.9 | 단위·어댑터 테스트 29개 통과. 비활성, 역할 수락, 수동 분류, 기한, 위조 상태, 알림 실패, YAML·Fixture 등을 확인. | [해당 버전의 테스트](https://github.com/UMC-PRODUCT/proposal-routing-lab/tree/c1ca65d1027d197075ccf8d28aeb4fb63878aad5/tests) |
+| 2026-09-12 | GitHub Actions, Python 3.12 | 최초 버전 28개, Fixture 회귀 테스트 추가 버전 29개 통과. | [최초 CI](https://github.com/UMC-PRODUCT/proposal-routing-lab/actions/runs/34683928299), [Fixture 추가 후 CI](https://github.com/UMC-PRODUCT/proposal-routing-lab/actions/runs/34684156939) |
+| 2026-09-12 | 비활성 Pilot 워크플로 | `records` 성공, `discord` 건너뜀. | [실행 결과](https://github.com/UMC-PRODUCT/proposal-routing-lab/actions/runs/34683987968) |
+| 2026-09-12 | API로 만든 합성 Issue | 제품·디자인 정상 입력은 오류 없음. 필수 정보 누락 건은 `needs:information`과 누락 목록 7개 표시. | [제품 #2](https://github.com/UMC-PRODUCT/proposal-routing-lab/issues/2), [디자인 #3](https://github.com/UMC-PRODUCT/proposal-routing-lab/issues/3), [누락 #4](https://github.com/UMC-PRODUCT/proposal-routing-lab/issues/4) |
+| 2026-09-12 | 비활성 일반 제안 | 비활성 안내만 기록. 최초 승인 이전 생성 건이므로 향후 실제 접수 표본에도 포함되지 않음. | [비활성 #5](https://github.com/UMC-PRODUCT/proposal-routing-lab/issues/5) |
+| 2026-09-12 | 합성 Issue 4개·Discord | 네 Issue 모두 Assignee·결정 기한·알림 큐 없음. Discord에는 준비 안내와 고정 시스템 메시지만 있고 Webhook 메시지는 0건. | 위 Issue들과 준비 채널의 당시 확인 결과 |
+| 2026-09-13 | 호스트 `gh` | 저장소와 이슈 접근 성공. Project 목록 조회는 토큰에 `read:project`가 없어 실패. 두 운영 변수 `false` 확인. | 호스트 CLI 조회. 인증값은 보관하지 않음. |
 
-## 검증 결과
+`tests/fixtures`에는 위 합성 Issue의 API 왕복 본문을 보존했습니다. 실제 Issue Form 화면에서 생성한 본문이 아닙니다. 로컬 파싱·자동 테스트와 실제 Form 제출 검증은 구분합니다.
 
-- 로컬 Python 3.9에서 단위·어댑터 테스트 29개 통과. 비활성 gate, 수락 작성자·수정 시각, 수동 Routing, 휴무일·접수 종료, 위조 상태, 중복·불명확 전송·Webhook 실패 격리, Form·Workflow YAML, 문서 링크·지속 보존 Fixture를 확인했다.
-- 최초 커밋의 [GitHub Actions CI](https://github.com/UMC-PRODUCT/proposal-routing-lab/actions/runs/34683928299)는 Python 3.12에서 당시 테스트 28개를 통과했다. Fixture 회귀 테스트 추가 후 최신 커밋의 CI 결과도 Actions에서 확인한다.
-- [실제 Pilot Workflow 실행](https://github.com/UMC-PRODUCT/proposal-routing-lab/actions/runs/34683987968): `records` 성공, `discord` 건너뜀.
-- [제품 정상 입력 #2](https://github.com/UMC-PRODUCT/proposal-routing-lab/issues/2), [Design System 정상 입력 #3](https://github.com/UMC-PRODUCT/proposal-routing-lab/issues/3): 시나리오 검증 성공, 오류 없음.
-- [필수 정보 누락 #4](https://github.com/UMC-PRODUCT/proposal-routing-lab/issues/4): `needs:information`과 누락 목록 7개 확인.
-- [비활성 일반 제안 #5](https://github.com/UMC-PRODUCT/proposal-routing-lab/issues/5): 비활성 안내만 기록하고 실제 접수하지 않음. 활성화 이전 생성 건이므로 향후 운영 Cohort에도 포함되지 않음.
-- 네 Issue 모두 Assignee 없음·결정 기한 없음·알림 큐 없음 확인. Discord에는 준비 안내와 고정 시스템 메시지만 있고 **Webhook 메시지 0건**이다.
-- `tests/fixtures`는 위 합성 Issue의 API 왕복 본문을 보존했다. 실제 Issue Form 화면에서 생성한 Fixture라고 간주하지 않는다.
-- 저장소 Private, Issues 활성, Wiki·Discussions·저장소 자체 Project 비활성, 두 운영 변수 false, 지정 Secret 이름 존재를 재조회했다.
+## 문서·표시 개선 검증
 
-## 활성화 전에 남겨 둘 항목
+2026-09-13에 제안자·운영자별 안내, Form 설명과 입력 예시, 작업별 완료 확인, 자동 댓글의 한국어 항목명과 KST 표시를 보완했습니다. 검증 결과는 아래에 확인한 근거와 함께 기록합니다.
 
-- Pilot DRI·참가자·결정권자·Backup의 인명 확정과 본인 수락.
-- 합의된 실제 계정으로 Read·Triage·Admin, Project·Discord 접근권한 비교.
-- Project 필드·View·Auto-add의 실제 화면·새 제출 결과 확인.
-- 실제 Form 렌더링과 생성된 Markdown Fixture 확인.
-- 실제 Discord 알림 전송·오류·중복의 운영 검증은 활성화 전송 허용 이후 수행. 비활성 환경에서는 실제 제안 알림을 보내지 않음.
+- 로컬: 기존 테스트 29개와 자동 댓글 표시 테스트 6개 통과. 숨김 상태 JSON 보존, KST 날짜 변경, 비활성·시나리오·보완·결정 상태별 다음 행동을 확인했습니다.
+- Form: 두 양식의 필드 ID·제목·선택지·필수 여부·라벨이 이전 버전과 같음을 확인했습니다. 설명·예시·안내만 변경했습니다.
+- 문서: Markdown 6개와 로컬 링크 22개를 확인했습니다. GitHub Markdown API로 제목·표·안내 경로의 렌더링을 확인했습니다. 실제 브라우저 Form 화면을 확인한 것은 아닙니다.
+- 코드: 표시 함수와 표시용 보조 함수를 제외한 핵심 로직이 기존 버전과 같음을 AST 비교로 확인했습니다.
+- 원격 반영과 변경 버전의 CI·댓글 확인 결과는 실제 확인한 뒤 추가합니다.
 
-환경 준비와 운영 인계·파일럿 효과 검증은 별개의 상태입니다. 계획의 합격 기준을 구현 결과로 간주하지 않습니다.
+## 남은 검증과 확인 방법
+
+| 아직 확인할 항목 | 다음 확인 방법 | 근거를 남길 위치 |
+|---|---|---|
+| 실제 역할·참가자 수락 | 합의한 계정을 설정에 반영하고 각자의 수락 댓글 작성자·ID를 대조합니다. | 활성화 이슈 |
+| 실제 계정별 권한 | 참가자·결정권자·부총괄 계정으로 저장소·Project·Discord를 확인합니다. 비참가 계정과 관리자 예외도 비교합니다. | 활성화 이슈 |
+| Project 필드·보기·자동 등록 | Project 권한이 있는 계정으로 설정한 뒤 새 제출의 자동 등록과 기본 상태, 보기별 표시를 확인합니다. | 활성화 이슈와 설정 화면·Issue 링크 |
+| 실제 Form 표시와 제출 본문 | 로그인한 브라우저에서 두 양식의 설명·예시를 확인하고 승인된 테스트 조건에서 제출합니다. 생성된 본문의 필드 제목·필수 정보 판정을 Fixture와 대조합니다. | 검증 기록과 해당 테스트 Issue |
+| 실제 알림의 수신·실패·중복 | 실제 전송을 허용한 검증 단계에서 Issue 기록과 Discord 수신 결과를 함께 확인합니다. 비활성 상태에서는 실제 제안 알림을 보내지 않습니다. | 해당 Issue 운영 메모 |
+| 시작 이후 실제 접수 | 참가자가 승인·시작 이후 제출한 유효 제안에 유효 접수 시각과 첫 결정 기한이 기록되는지 확인합니다. | 활성화 이슈와 실제 제안 링크 |
+
+접수 전 테스트는 `pilot:scenario`로 구분하고, 실제 참가자나 전송을 사용하는 검증은 담당자와 허용 범위를 합의한 뒤 수행합니다. 환경 준비, 운영 인계, 파일럿 효과는 각각 확인해야 합니다. 문서의 절차나 목표만으로 검증 완료를 표시하지 않습니다.
