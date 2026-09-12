@@ -323,10 +323,21 @@ class IntakeCoreTests(unittest.TestCase):
         route['acceptance_comment_id'] = 903
         version = route_version(route)
         self.roles.append(comment(903, 14, '/역할수락 brand-and-growth ' + version))
-        self.assertEqual([], self.run_case(state)['assignees'])
+        self.assertIsNone(self.run_case(state)['assignees'])
         route['handoff_comment_id'] = 904
         self.roles.append(comment(904, 14, '/인계수락 brand-and-growth ' + version))
         self.assertEqual(['user14'], self.run_case(state)['assignees'])
+
+    def test_pending_handoff_preserves_previous_identity_and_guides_coordinator(self):
+        previous = self.run_case()['state']
+        self.cfg['routes']['brand-and-growth']['owner_id'] = 14
+        result = self.run_case(previous)
+        self.assertEqual(12, result['state']['decision_owner_id'])
+        self.assertFalse(result['state']['decision_authority_active'])
+        body = core.render_state(result['state'])
+        self.assertIn('연결 담당자: @user15', body)
+        self.assertIn('/연결 <책임 ID>', body)
+        self.assertNotIn('## 결정', body)
 
     def test_handoff_before_actual_role_acceptance_is_rejected(self):
         state = self.run_case()['state']
@@ -335,7 +346,7 @@ class IntakeCoreTests(unittest.TestCase):
         version = route_version(route)
         self.roles.append(comment(903, 14, '/역할수락 brand-and-growth ' + version, '2026-09-14T03:00:00Z'))
         self.roles.append(comment(904, 14, '/인계수락 brand-and-growth ' + version, '2026-09-14T02:00:00Z'))
-        self.assertEqual([], self.run_case(state)['assignees'])
+        self.assertIsNone(self.run_case(state)['assignees'])
 
     def test_reroute_edit_after_owner_expiry_is_not_authorized(self):
         pending = self.run_case()['state']

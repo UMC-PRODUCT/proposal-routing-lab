@@ -155,8 +155,11 @@ def render_state(state):
              state.get('next_action', '담당자 연결을 기다려 주세요.'), '']
     login = state.get('decision_owner_login')
     if login:
-        lines.append(f'결정 담당자: @{login}')
-    elif state.get('coordinator_logins'):
+        label = '결정 담당자' if state.get('decision_authority_active') else '이전 담당 기록 (새 결정 권한 확인 필요)'
+        if state.get('status') == '처리 완료':
+            label = '결정 기록 담당자'
+        lines.append(f'{label}: @{login}')
+    if not state.get('decision_authority_active') and state.get('coordinator_logins'):
         lines.append('연결 담당자: ' + ', '.join('@' + x for x in state['coordinator_logins']))
     for key, label in [('routing_due_at', '담당자 연결 기한'), ('first_response_due_at', '첫 응답 기한')]:
         if state.get(key):
@@ -170,11 +173,19 @@ def render_state(state):
                       '', '```text', f'/수락 {decision["version"]}',
                       '실행 작업: https://github.com/조직/저장소/issues/번호', '```', '',
                       '이 수락은 위 결정의 범위를 맡고 연결한 작업에서 진행을 추적하겠다는 확인입니다.'])
-    elif state.get('status') == '검토 중' and login:
+    elif state.get('status') == '검토 중' and login and state.get('decision_authority_active'):
         lines.extend(['', '결정 담당자는 아래 문안을 새 댓글로 작성할 수 있습니다.', '', '```text',
                       '## 결정', '결정: 검증 진행 / 실행 진행 / 보류 / 종료 중 하나', '이유: 판단 이유',
                       '범위: 이번에 다룰 범위', '다음 행동: 구체적인 후속 행동',
                       '실행 담당자: @계정', '다음 확인일: YYYY-MM-DD', '```'])
+    if state.get('status') == '검토 중' and state.get('coordinator_logins'):
+        lines.extend(['', '현재 결정 담당자 또는 연결 담당자가 범위를 확인한 뒤 재연결할 수 있습니다.',
+                      '', '```text', '/연결 <책임 ID>', '사유: 이 책임으로 연결하는 이유', '```'])
+        choices = state.get('available_routes', [])
+        if choices:
+            lines.append('연결 가능한 책임: ' + ', '.join(f'{_safe(r["name"])} (`{r["id"]}`)' for r in choices))
+        else:
+            lines.append('현재 연결 가능한 책임이 없습니다. Registry 계정·역할 수락·임기·인계를 먼저 확인해주세요.')
     lines.extend(['', '처리 완료는 실행 작업으로의 인계 완료입니다. 개발 완료는 연결한 작업에서 확인합니다.',
                   '봇은 다른 저장소의 작업 내용·존재·접근 권한을 검증하지 않습니다.'])
     return '\n'.join(lines)
@@ -291,6 +302,8 @@ def reconcile(cfg, issue, comments, events, role_comments, now, old=None):
     coordinators = _coordinators(cfg, role_comments, now)
     state['coordinator_ids'] = coordinators
     state['coordinator_logins'] = [login for uid in coordinators if (login := _login(cfg, uid))]
+    state['available_routes'] = [{'id': rid, 'name': item['name']} for rid, item in cfg.get('routes', {}).items()
+                                 if not route_errors(cfg, rid, role_comments, now)]
 
     # Reopening by a person begins another decision cycle; bot corrections do not.
     reopens = [event for event in events if event.get('event') == 'reopened'
@@ -376,6 +389,12 @@ def reconcile(cfg, issue, comments, events, role_comments, now, old=None):
             if assigned:
                 state.setdefault('first_assigned_at', min(event['created_at'] for event in assigned))
     assignees = [state['decision_owner_login']] if ready and state.get('decision_owner_login') else []
+    state['decision_authority_active'] = ready
+    if not ready and old.get('appointment'):
+        # Preserve the recorded assignee until the successor accepts the handoff.
+        state['decision_owner_id'] = old['appointment'].get('owner_id')
+        state['decision_owner_login'] = _login(cfg, state['decision_owner_id']) or old.get('decision_owner_login')
+        assignees = None
     if ready:
         state['next_action'] = f'결정 담당자 @{state["decision_owner_login"]}가 제안을 검토하고 결정을 기록해 주세요.'
 
