@@ -25,7 +25,7 @@ def prepared():
     ]
     cfg["reviewers"] = {"registry": [10, 11], "automation": [11, 12]}
     cfg["repository"].update({"dashboard_issue": 6, "intake_opened_at": "2026-09-15T00:00:00+09:00"})
-    cfg["repository"]["excluded_issue_numbers"].append(6)
+    cfg["repository"]["excluded_issue_numbers"] = [1, 2, 3, 4, 5, 6]
     cfg["readiness"] = {"protection_verified": True, "usability_verified": True}
     route = cfg["routes"]["brand-and-growth"]
     route.update({"owner_id": 10, "enabled": True, "acceptance_comment_id": 100})
