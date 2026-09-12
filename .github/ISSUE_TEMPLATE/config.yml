@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 파일럿 시작·운영 안내
+    url: https://github.com/UMC-PRODUCT/proposal-routing-lab/blob/main/START-HERE.md
+    about: 현재 활성화 상태와 접수 범위를 먼저 확인하세요.

@@ -1,0 +1,47 @@
+name: 제품·기능 Proposal
+description: 사용자 문제를 적고 적절한 결정권자에게 연결합니다.
+title: '[Product] '
+labels: [proposal, 'proposal:product']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        활성화된 파일럿 참가자만 접수 대상입니다. 일상 작업을 중복 등록하지 마세요.
+        본문은 12,000자 이내로 적고 제목·본문에 개인정보나 비밀값을 넣지 마세요.
+  - type: dropdown
+    id: purpose
+    attributes:
+      label: Purpose Team
+      options: ['Brand & Growth', 'Learning & Activity', 'Community & Connection', 'Operations Enablement', '모르겠음']
+    validations: {required: true}
+  - type: textarea
+    id: problem
+    attributes: {label: 사용자 문제, description: '누가 어떤 상황에서 무엇을 어려워하나요?'}
+    validations: {required: true}
+  - type: textarea
+    id: mission
+    attributes: {label: Mission 연결, description: '팀의 목적과 어떤 관련이 있나요? 모르겠으면 판단이 필요한 이유를 적어주세요.'}
+    validations: {required: true}
+  - type: textarea
+    id: evidence
+    attributes: {label: 근거, description: '확인한 사실과 아직 추측인 내용을 구분해주세요.'}
+    validations: {required: true}
+  - type: textarea
+    id: experiment
+    attributes: {label: 가장 작은 검증, description: '최소한 무엇을 확인하면 다음 결정을 할 수 있나요?'}
+    validations: {required: true}
+  - type: textarea
+    id: conditions
+    attributes: {label: 성공·중단 조건, description: '어떤 결과일 때 이어가거나 멈추나요?'}
+    validations: {required: true}
+  - type: textarea
+    id: collaboration
+    attributes: {label: 필요한 협업, description: '필요한 도움 또는 협업 없음과 그 이유를 적어주세요.'}
+    validations: {required: true}
+  - type: dropdown
+    id: owner
+    attributes:
+      label: DRI 의향
+      description: 의향 확인이며 실제 책임 인수는 결정 댓글에서 별도로 수락합니다.
+      options: ['맡을 의향 있음', '협의 필요', '제안만 하고 싶음']
+    validations: {required: true}

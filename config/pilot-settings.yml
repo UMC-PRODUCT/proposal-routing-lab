@@ -1,0 +1,28 @@
+# Draft — Owner confirmation required. No real participant is pre-assigned.
+pilot_owner: null
+participants: []
+enabled_routes: []
+routing_map:
+  brand-and-growth: {purpose: 'Brand & Growth', primary: null, backup: null}
+  learning-and-activity: {purpose: 'Learning & Activity', primary: null, backup: null}
+  community-and-connection: {purpose: 'Community & Connection', primary: null, backup: null}
+  operations-enablement: {purpose: 'Operations Enablement', primary: null, backup: null}
+  design-platform: {purpose: 'Design Platform', primary: null, backup: null}
+decision_sla_business_days: 3
+timezone: Asia/Seoul
+non_working_dates:
+  - '2026-09-24'
+  - '2026-09-25'
+  - '2026-09-26'
+  - '2026-10-03'
+  - '2026-10-05'
+  - '2026-10-09'
+activation_date: null
+intake_close_at: null
+weekly_ops_budget_minutes: null
+# Filled after the activation issue has been created; not a participant identity.
+activation_issue: 1
+activation_approval: null
+# Keys: pilot_owner, <enabled-route>.primary, <enabled-route>.backup
+# Values: comment IDs on the activation issue, written by each role holder.
+role_acceptances: {}

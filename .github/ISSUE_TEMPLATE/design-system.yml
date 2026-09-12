@@ -1,0 +1,49 @@
+name: Design System Proposal
+description: 여러 팀·플랫폼에 영향을 주는 공통 디자인 기반 변경을 제안합니다.
+title: '[Design System] '
+labels: [proposal, 'proposal:design-system']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        일상적인 목적팀 화면 변경은 대상이 아닙니다. 공통 Component·Token·Pattern,
+        Shared Contract·Migration·공통 원칙 예외만 제안해주세요. 본문은 12,000자 이내입니다.
+  - type: dropdown
+    id: platform
+    attributes:
+      label: 플랫폼 범위
+      options: [iOS, Android, Web, Shared Contract]
+      multiple: true
+    validations: {required: true}
+  - type: textarea
+    id: problem
+    attributes: {label: 관련 Purpose·사용자 문제, description: '어느 팀의 사용자가 어떤 문제를 겪나요?'}
+    validations: {required: true}
+  - type: textarea
+    id: figma
+    attributes:
+      label: Figma Node Link 또는 미존재 사유
+      description: '대상이 있으면 node-id가 포함된 HTTPS 링크 하나를, 없으면 "미존재: 구체적 사유"를 적어주세요.'
+    validations: {required: true}
+  - type: textarea
+    id: common
+    attributes: {label: 공통 행동·상태, description: '플랫폼 간 같아야 하는 사용자 행동·상태는 무엇인가요?'}
+    validations: {required: true}
+  - type: textarea
+    id: adaptation
+    attributes: {label: 플랫폼별 표현·이유, description: '플랫폼에 따라 달라야 하는 표현과 이유를 적어주세요.'}
+    validations: {required: true}
+  - type: textarea
+    id: impact
+    attributes: {label: Component·Token·Migration 영향, description: '공통 기반과 기존 제품의 변경 영향을 적어주세요.'}
+    validations: {required: true}
+  - type: textarea
+    id: conditions
+    attributes: {label: 성공·중단 조건, description: '어떤 결과일 때 이어가거나 멈추나요?'}
+    validations: {required: true}
+  - type: dropdown
+    id: owner
+    attributes:
+      label: DRI 의향
+      options: ['맡을 의향 있음', '협의 필요', '제안만 하고 싶음']
+    validations: {required: true}
