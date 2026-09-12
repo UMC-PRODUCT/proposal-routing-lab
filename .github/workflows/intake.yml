@@ -1,0 +1,54 @@
+name: GitHub proposal intake
+on:
+  issues:
+    types: [opened, edited, labeled, unlabeled, assigned, unassigned, closed, reopened]
+  issue_comment:
+    types: [created, edited, deleted]
+  push:
+    branches: [main]
+    paths: ['registry/**', 'intake/**', '.github/workflows/intake.yml']
+  schedule:
+    - cron: '17 * * * *'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  authorize:
+    runs-on: ubuntu-latest
+    outputs:
+      allowed: ${{ steps.gate.outputs.allowed }}
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: main
+          persist-credentials: false
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
+        with:
+          python-version: '3.12'
+      - run: python -m pip install -r requirements.txt
+      - id: gate
+        run: python -m intake.runner authorize
+  reconcile:
+    needs: authorize
+    if: needs.authorize.outputs.allowed == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+    concurrency:
+      group: proposal-intake-v1
+      cancel-in-progress: false
+      queue: max
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: main
+          persist-credentials: false
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
+        with:
+          python-version: '3.12'
+      - run: python -m pip install -r requirements.txt
+      - run: REGISTRY_REF="$(git rev-parse HEAD)" python -m intake.runner reconcile
+        env:
+          GH_TOKEN: ${{ github.token }}
+          INTAKE_MODE: ${{ vars.INTAKE_MODE || 'observe' }}

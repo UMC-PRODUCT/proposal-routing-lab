@@ -1,39 +1,28 @@
-# Proposal Routing Pilot
+# UMC PRODUCT 제안 접수
 
-제안이 적절한 결정권자에게 도착하고, 제안자에게 다음 행동이 돌아오는지 확인하는 비공개 파일럿입니다. 제품·기능 개선과 Design System 제안을 GitHub Issue로 받고, 운영 담당자가 결정권자를 연결합니다.
+제품·기능 개선과 Design System 제안을 작성하면, 등록된 Ownership에 따라 결정 담당자와 다음 행동을 안내합니다. 제안·결정·실행 수락의 정본은 같은 GitHub Issue입니다.
 
-**실제 접수를 시작하기 전입니다.** 제출 전 [활성화 이슈 #1](https://github.com/UMC-PRODUCT/proposal-routing-lab/issues/1)의 시작 안내를 확인하세요. 담당자의 수락과 준비 확인을 마친 뒤 접수를 시작합니다.
+**현재: v1 도입 준비 · 자동 운영 미개시.** 구성원 계정·담당자의 본인 수락·검토자·실제 권한과 사용성 확인이 끝나야 시작합니다. 저장소의 공개 여부와 자동 접수 활성화는 별개입니다.
 
-## 하려는 일에 따라 시작하기
+- 제안 작성: [시작 안내](START-HERE.md)
+- 담당 범위·준비 상태: [Ownership Registry](docs/ownership-registry.md)
+- 결정·수락·인계·실패 대응: [운영 안내](docs/operator-guide.md)
+- 운영 개시 준비: [활성화 체크리스트](docs/activation-checklist.md)
+- 구현·검증 근거: [검증 기록](docs/verification.md)
 
-| 하려는 일 | 읽을 문서 |
-|---|---|
-| 제안을 제출하고 이후 과정을 알아보기 | [제출 대상과 작성 방법](START-HERE.md#submit) |
-| 제안에 결정권자를 지정하기 | [담당자 지정 절차](docs/operator-guide.md#route) |
-| 진행·보류·종료 결정을 기록하기 | [첫 결정 작성과 책임 수락](docs/operator-guide.md#decision) |
-| 파일럿을 시작하기 | [운영 준비와 활성화](docs/operator-guide.md#activate), [이번 파일럿의 준비 기록](https://github.com/UMC-PRODUCT/proposal-routing-lab/issues/1) |
-| 구현과 검증 결과를 확인하기 | [로컬 확인](#local-checks), [구축 및 검증 기록](docs/verification.md) |
+조직의 인사·회의·운영 제도 변경과 일상 개발 작업은 기존 경로에서 다룹니다. 공지·출석·승인 등 운영을 지원하는 **제품 기능 개선**은 접수 대상입니다. Discord·Spring·별도 DB·GitHub App은 v1에 포함하지 않습니다.
 
-## 파일럿의 범위와 기록 위치
+## 개발과 검증
 
-팀 내부의 일상 작업은 기존 경로를 사용합니다. 이 파일럿은 제안 접수부터 첫 결정과 다음 행동 안내까지 확인합니다. 실행 결과의 측정과 조직 전체 확대는 별도 판단이 필요합니다. 첫 파일럿에서는 운영 담당자가 직접 결정권자를 선택하며, 자동 분류는 사용하지 않습니다.
-
-제안별 기한·결정·담당자는 **해당 Issue의 운영 기록**을 기준으로 확인합니다. Project는 그 기록을 모아 보는 용도입니다. [Discord 준비 채널](https://discord.com/channels/1442030160311484416/1548251856549974136)에는 제안 번호·종류·분류 경로·담당 GitHub 계정·기한·링크만 알립니다. 제안의 실제 제목과 본문은 전송하지 않습니다.
-
-시작 준비와 승인 근거는 활성화 이슈에 기록합니다. 실제 접수 동작은 설정·본인 수락·Actions 변수까지 함께 검사하므로, 이슈의 체크박스나 Actions의 성공 표시만으로 활성화를 판단하지 않습니다. [확인 방법](docs/operator-guide.md#ready-check)을 따르세요.
-
-<a id="local-checks"></a>
-## 개발자가 로컬에서 확인하기
-
-저장소를 내려받은 뒤 저장소 루트에서 실행합니다. GitHub Actions의 검증 환경은 Python 3.12이며, 의존성은 PyYAML 6.0.3입니다.
+GitHub Actions는 Python 3.12에서 실행합니다. 테스트는 실제 API 호출 없이 합성 기록을 사용합니다.
 
 ```sh
-python3 -m venv .venv
-.venv/bin/python -m pip install -r requirements.txt
-.venv/bin/python -m unittest discover -s tests -v
-.venv/bin/python -m pilot.runner check-config
+python -m pip install -r requirements.txt
+python -m unittest discover -s tests -v
+python -m intake.runner check-config
+python -m intake.generate --check
 ```
 
-테스트가 끝나면 `OK`와 실행한 테스트 수를 확인합니다. 테스트는 합성 사용자와 기록을 사용하며 네트워크 요청을 보내지 않습니다.
+`registry/ownership.yml` 변경 후 `python -m intake.generate`로 양식과 읽기용 표를 갱신하세요. `check-config` 성공은 스키마가 유효하다는 뜻이며 운영 개시·실제 권한 검증을 대신하지 않습니다.
 
-`check-config`는 설정의 승인용 식별값(`Config approval fingerprint`)과 미완료 항목을 출력합니다. 초기 설정에서는 미완료 항목이 나오는 것이 정상이며, 명령의 종료 성공은 활성화 완료를 뜻하지 않습니다. 이 명령은 GitHub의 수락 댓글을 조회하지 않습니다. 실제 계정·Form·Project·알림 검증은 [검증 기록](docs/verification.md)에서 구분해 확인합니다.
+상태 계산은 `intake/core.py`, 계정·임기·영업일은 `intake/registry.py`, API 조회와 쓰기는 `intake/runner.py`에 있습니다. 기존 `pilot/runner.py`의 GitHub API 전송·페이지 처리만 재사용합니다. 옛 정책 코드·합성 테스트는 보존하지만 운영 워크플로는 `.github/workflows/intake.yml`입니다. 옛 양식·워크플로·안내는 [legacy](legacy/README.md)에 보관합니다.

@@ -227,7 +227,7 @@ class ConfigAndFormTests(unittest.TestCase):
 
     def test_form_headings_match_parser_and_yaml_is_well_formed(self):
         for filename,expected in [('product.yml',core.PRODUCT_FIELDS),('design-system.yml',core.DESIGN_FIELDS)]:
-            form=yaml.safe_load(Path('.github/ISSUE_TEMPLATE',filename).read_text())
+            form=yaml.safe_load(Path('legacy/issue-templates',filename).read_text())
             self.assertEqual(expected,tuple(x['attributes']['label'] for x in form['body'] if x['type']!='markdown'))
             self.assertNotIn('projects',form)
             self.assertEqual(len(form['body']),len({x.get('id','intro') for x in form['body']}))
