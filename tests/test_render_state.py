@@ -3,6 +3,7 @@ import json
 import unittest
 
 from pilot import core
+from pilot.runner import GitHub, sync_one
 
 
 def visible(state):
@@ -104,6 +105,63 @@ class RenderStateTests(unittest.TestCase):
         body = visible(state)
         self.assertIn('현재 알림 전송이 보류', body)
         self.assertNotIn('재전송이 필요하면', body)
+
+
+class RecordingGitHub(GitHub):
+    """Exercise save_state POST/PATCH behavior without network requests."""
+    def __init__(self, comments):
+        super().__init__('fixture-org/pilot', 'unused')
+        self.records = copy.deepcopy(comments)
+        self.writes = []
+
+    def comments(self, number):
+        return copy.deepcopy(self.records)
+
+    def request(self, method, path, payload=None):
+        self.writes.append((method, path, copy.deepcopy(payload)))
+        if method == 'PATCH' and path == self.base('/issues/comments/900'):
+            next(c for c in self.records if c['id'] == 900)['body'] = payload['body']
+        elif method == 'POST' and path == self.base('/issues/7/comments'):
+            self.records.append({'id': 900, 'user': {'id': core.BOT_ID, 'type': 'Bot'}, 'body': payload['body']})
+        else:
+            raise AssertionError((method, path))
+
+
+class RenderStateSyncTests(unittest.TestCase):
+    def setUp(self):
+        self.issue = {'number': 7, 'labels': ['proposal', 'proposal:product'], 'body': ''}
+        self.now = core.stamp('2026-09-14T01:00:00Z')
+        self.state = core.reconcile({}, self.issue, [], [], self.now, 'fixture-org/pilot', [], 'false')['state']
+
+    def sync(self, api):
+        return sync_one(api, {}, self.issue, [], 'false', self.now)
+
+    def test_refresh_same_trusted_comment_once_without_changing_hidden_state(self):
+        hidden = core.STATE_MARKER + json.dumps(self.state, ensure_ascii=False, sort_keys=True) + '\n-->\n'
+        records = [
+            {'id': 800, 'user': {'id': 123, 'type': 'User'}, 'body': hidden + '사용자 작성 댓글'},
+            {'id': 900, 'user': {'id': core.BOT_ID, 'type': 'Bot'}, 'body': hidden + '## Proposal 운영 기록\n이전 표시 문구'},
+        ]
+        api = RecordingGitHub(records)
+        self.assertEqual(self.state, self.sync(api))
+        self.assertEqual(1, len(api.writes))
+        method, path, payload = api.writes[0]
+        self.assertEqual(('PATCH', api.base('/issues/comments/900')), (method, path))
+        self.assertTrue(payload['body'].startswith(hidden))
+        self.assertEqual(core.render_state(self.state), payload['body'])
+        self.assertEqual((self.state, 900), core.read_state(api.records))
+        self.assertEqual(records[0], api.records[0])
+        self.assertEqual(self.state, self.sync(api))
+        self.assertEqual(1, len(api.writes), 'Matching rendered content must not trigger another PATCH')
+
+    def test_missing_trusted_comment_is_created_and_not_created_again(self):
+        api = RecordingGitHub([])
+        self.assertEqual(self.state, self.sync(api))
+        self.assertEqual(1, len(api.writes))
+        self.assertEqual(('POST', api.base('/issues/7/comments')), api.writes[0][:2])
+        self.assertEqual((self.state, 900), core.read_state(api.records))
+        self.sync(api)
+        self.assertEqual(1, len(api.writes))
 
 
 if __name__ == '__main__':

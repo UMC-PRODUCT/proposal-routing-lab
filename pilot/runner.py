@@ -93,7 +93,9 @@ def sync_one(api, settings, issue, activation, active, now):
             api.request('POST', api.base(f'/issues/{issue["number"]}/labels'), {'labels':[label]})
         for label in sorted(before-after):
             api.request('DELETE', api.base(f'/issues/{issue["number"]}/labels/{urllib.parse.quote(label, safe="")}'))
-    if result['state'] != old:
+    existing_body = next((c.get('body') for c in comments if c['id'] == comment_id), None)
+    # Refresh presentation changes on the existing trusted comment even when state is unchanged.
+    if existing_body != render_state(result['state']):
         api.save_state(issue['number'], result['state'], comment_id)
     return result['state']
 
