@@ -17,6 +17,8 @@
 - CODEOWNERS의 실제 검토자는 미등록입니다. 설정 플래그만으로 모든 경로의 검토 책임이 작동한다고 판단하지 않으며 Registry의 `protection_verified=false`를 유지합니다. Registry 각 검토 영역에 최소 2명을 연결한 뒤 생성 파일·실제 권한·오류 응답을 다시 확인해야 합니다.
 - `INTAKE_MODE=observe`, `PILOT_ACTIVE=false`, `AUTO_ROUTING_ENABLED=false`를 원격에서 확인했습니다. 새 접수 라벨 9개와 [운영 현황 #6](https://github.com/UMC-PRODUCT/proposal-routing-lab/issues/6)을 준비했습니다. 기존 #1~5는 보존합니다.
 - `907c16e` 기준 [원격 CI](https://github.com/UMC-PRODUCT/proposal-routing-lab/actions/runs/34717922367)가 Python 3.12에서 전체 113개 테스트·Registry 검증·생성 파일 정합성을 통과했습니다.
+- [구현 PR #7](https://github.com/UMC-PRODUCT/proposal-routing-lab/pull/7)을 생성했습니다. `63161a0`의 PR·push CI 모두 성공했고 실제 PR 조회는 `REVIEW_REQUIRED`, `BLOCKED`로 승인 없이 병합할 수 없는 상태였습니다. CODEOWNERS 오류 API는 빈 오류 목록을 반환했으나 실제 담당자 미등록과는 별개입니다.
+- 인증 없는 GitHub API 조회로 공개 열람을 확인했고 옛 `pilot.yml` 워크플로는 원격에서 `disabled_manually`로 확인했습니다.
 - 새 자동화·양식은 검토 브랜치에서 구현했으며 main 병합 전입니다. 현재 공개된 main의 옛 안내를 v1 운영 개시로 해석하지 않습니다.
 
 ## 아직 필요한 검증
