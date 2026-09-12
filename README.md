@@ -7,6 +7,8 @@
 - [시작·운영 안내](START-HERE.md)
 - [Proposal 제출](https://github.com/UMC-PRODUCT/proposal-routing-lab/issues/new/choose)
 - [활성화 체크리스트 원본](docs/activation-checklist.md)
+- [실제 활성화 Issue](https://github.com/UMC-PRODUCT/proposal-routing-lab/issues/1)
+- [비공개 Discord 준비 채널](https://discord.com/channels/1442030160311484416/1548251856549974136)
 - [구축 및 실제 검증 기록](docs/verification.md)
 
 제품·기능과 Design System Proposal만 대상으로 합니다. 팀 내부의 일상 작업은 기존 경로를 사용합니다. 첫 버전은 수동 Routing이며 실행·Outcome 측정과 조직 전체 확대는 포함하지 않습니다.

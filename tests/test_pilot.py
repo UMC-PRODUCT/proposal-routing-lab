@@ -213,6 +213,12 @@ class CoreTests(unittest.TestCase):
 
 
 class ConfigAndFormTests(unittest.TestCase):
+    def test_persisted_issue_markdown_fixtures(self):
+        for name,kind,has_errors in [('product.md','proposal:product',False),('design-system.md','proposal:design-system',False),('incomplete.md','proposal:product',True)]:
+            body=Path('tests/fixtures',name).read_text()
+            errors,_=core.form_errors({'body':body,'labels':['proposal',kind]})
+            self.assertEqual(has_errors,bool(errors),name)
+
     def test_checked_in_config_cannot_activate(self):
         settings=yaml.safe_load(Path('config/pilot-settings.yml').read_text())
         self.assertTrue(core.activation_errors(settings,[],REPO,'true'))
