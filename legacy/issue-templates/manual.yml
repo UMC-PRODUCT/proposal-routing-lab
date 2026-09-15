@@ -1,0 +1,55 @@
+name: 수동 접수 — 지금 제안 남기기
+description: Discord에서 나온 제안이나 직접 작성한 제안을 기록하고 사람이 연결합니다.
+title: '[수동 접수] '
+labels: ['manual-intake']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        초기 운영에서는 이 양식을 사용합니다. Discord 원글을 옮기는 경우 실제 제안자와 원글 링크를 남겨주세요.
+        GitHub에서 직접 제안해도 됩니다. 등록은 실행 약속이나 담당자의 책임 수락을 뜻하지 않습니다.
+        담당자 자동 지정, 3영업일 자동 기한, 결정·수락 자동 검증은 적용되지 않습니다.
+        제목·본문에 토큰, 비밀값, 불필요한 개인정보를 넣지 마세요.
+        자세한 흐름은 [수동 접수 운영 안내](https://github.com/UMC-PRODUCT/proposal-routing-lab/blob/main/docs/manual-operations.md)를 참고하세요.
+  - type: input
+    id: proposer
+    attributes:
+      label: 실제 제안자
+      description: 원글 작성자의 Discord 표시명 또는 GitHub 계정을 적어주세요. 직접 제안하면 본인 계정을 적습니다.
+      placeholder: 'Discord 표시명 또는 @GitHub계정'
+    validations: {required: true}
+  - type: input
+    id: discord_source
+    attributes:
+      label: Discord 원글 링크
+      description: Discord에서 옮겼다면 원 게시글의 메시지 링크를 복사해 넣어주세요. GitHub에서 직접 제안하면 비워도 됩니다.
+      placeholder: 'https://discord.com/channels/서버ID/스레드ID/메시지ID'
+    validations: {required: false}
+  - type: dropdown
+    id: team
+    attributes:
+      label: 연결할 팀
+      description: 관련 있다고 생각하는 팀을 선택해주세요. 모르겠으면 접수 담당자가 함께 확인합니다. 선택만으로 담당자가 지정되지는 않습니다.
+      options: ['모르겠음', 'Brand & Growth', 'Learning & Activity', 'Community & Connection', 'Operations Enablement', 'Platform Team', 'Design Platform Team', 'Infrastructure Team', '여러 팀 또는 공통']
+    validations: {required: true}
+  - type: textarea
+    id: problem
+    attributes:
+      label: 문제
+      description: 누가 어떤 상황에서 무엇을 어려워하나요?
+      placeholder: '예: 모집 안내를 읽은 지원자가 신청 경로를 찾기 어렵습니다.'
+    validations: {required: true}
+  - type: textarea
+    id: evidence
+    attributes:
+      label: 근거
+      description: 확인한 사실과 추측을 구분해주세요. 아직 근거가 없다면 확인하지 못한 점을 적어도 됩니다.
+      placeholder: '직접 확인한 내용 / 아직 확인하지 못한 내용 / 관련 기록 링크'
+    validations: {required: true}
+  - type: textarea
+    id: help
+    attributes:
+      label: 원하는 도움
+      description: 함께 확인하거나 결정해 주었으면 하는 내용을 적어주세요. 완성된 해결책은 없어도 됩니다.
+      placeholder: '예: 신청 경로를 함께 확인하고 안내를 고칠 필요가 있는지 검토해 주세요.'
+    validations: {required: true}

@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 초기 수동 접수와 결정 안내
+    url: https://github.com/UMC-PRODUCT/proposal-routing-lab/blob/main/docs/manual-operations.md
+    about: 지금은 수동 접수 양식을 사용합니다. Discord 원글 연결과 한국어 결정·본인 수락 방법을 확인하세요.
+  - name: 제안 제출 전 확인할 내용
+    url: https://github.com/UMC-PRODUCT/proposal-routing-lab/blob/main/START-HERE.md
+    about: 접수 상태, 제출할 수 있는 제안, 제출 후 진행 과정을 확인해주세요.
